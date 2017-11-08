@@ -19,11 +19,13 @@ import java.util.Arrays;
 import org.eclipse.january.DatasetException;
 import org.eclipse.january.MetadataException;
 import org.eclipse.january.dataset.Dataset;
+import org.eclipse.january.dataset.DatasetFactory;
 import org.eclipse.january.dataset.DoubleDataset;
 import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.january.dataset.Random;
 import org.eclipse.january.dataset.Slice;
+import org.eclipse.january.dataset.SliceND;
 import org.eclipse.january.metadata.AxesMetadata;
 import org.eclipse.january.metadata.ErrorMetadata;
 import org.eclipse.january.metadata.MetadataFactory;
@@ -268,5 +270,26 @@ public class AxesMetadataTest {
         ILazyDataset view = dataset.getSliceView(new Slice(1,2),null,null);
         IDataset slice = view.getSlice();
         assertTrue(slice != null);
+    }
+    
+    @Test
+    public void testSqueezeUnsqueeze() throws DatasetException {
+    	final int[] shape = new int[] { 2, 3, 4, 5};
+    	final int[] unsqueezeShape = new int[] {1,3,1,5};
+    	
+    	IDataset dataset = DatasetFactory.ones(shape);
+    	IDataset ax = DatasetFactory.ones(new int[] {3});
+    	
+    	AxesMetadata amd = MetadataFactory.createMetadata(AxesMetadata.class, shape.length);
+        amd.setAxis(1, ax);
+        dataset.setMetadata(amd); 
+        
+        SliceND slice = new SliceND(shape);
+        slice.setSlice(0, 0,1,1);
+        slice.setSlice(2, 0,1,1);
+        
+        IDataset sliced = dataset.getSlice(slice);
+        sliced.squeeze();
+        sliced.setShape(unsqueezeShape);
     }
 }
